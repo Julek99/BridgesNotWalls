@@ -44,14 +44,14 @@ class scenario:
         for (i,r) in pairs:
             self.beta[self.num[i]] = r*self.gamma[self.num[i]]
             
-    def borders(self, pairs):
-        for (c,b) in pairs:
-            if b:
-                self.A[self.num[c]] = self.A0[self.num[c]]
-                self.Asum = np.sum(self.A,axis = 1)
-            else:
-                self.A[self.num[c]] = np.zeros_like(self.A[self.num[c]])
-                self.Asum = np.sum(self.A,axis = 1)
+    def closed_borders(self, countries):
+        self.A = self.A0
+
+        for c in countries:
+            self.A[self.num[c],:] = np.zeros_like(self.A[self.num[c],:])
+            self.A[:,self.num[c]] = np.zeros_like(self.A[:,self.num[c]])
+        
+        self.Asum = np.sum(self.A,axis = 1)
         
     def plot(self, value = 1, as_percent = False):
         plt.figure(figsize=(16,10))
@@ -88,13 +88,13 @@ def europe():
 
     cs = scenario(A,N,SIR0,labels = Labels)
     cs.march(10)
-    cs.borders([('DE',False)])
+    cs.closed_borders(['DE'])
     cs.march(70)
     cs.plot(1, as_percent = True)
     
     return cs
     
-def inter(day, day_old = 0, borders_old = None, borders = None, SIR0 = None, max_days = 730):
+def inter(day, day_old = 1, borders_old = None, borders = None, SIR0 = None, max_days = 730):
     Labels = ['BE','BG','CZ','DK','DE','EE','IE','EL','ES','FR','HR','IT',
               'CY','LV','LT','LU','HU','MT','NL','AT','PL','PT','RO','SI','SK','FI','SE','UK','NO','CH']
     N = [11590,6948,10709,5792,83784,1327,4938,10427,46755,65274,4105,60462,1170,1886,2722,
@@ -112,12 +112,12 @@ def inter(day, day_old = 0, borders_old = None, borders = None, SIR0 = None, max
     cs = scenario(A,N,SIR0,labels = Labels)
     if day > day_old:
         if borders_old != None:
-            cs.borders([(x,False) for x in borders_old])
-            
+            cs.closed_borders(borders_old)
+
         cs.march(day-day_old)
 
     if borders != None:
-        cs.borders([(x,False) for x in borders])
+        cs.closed_borders(borders)
 
     cs.march(max_days - day)
     
