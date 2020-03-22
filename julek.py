@@ -1,3 +1,5 @@
+# Author: Julian Wykowski jw6717@ic.ac.uk
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -44,15 +46,17 @@ class scenario:
         for (i,r) in pairs:
             self.beta[self.num[i]] = r*self.gamma[self.num[i]]
             
-    def borders(self, pairs):
-        for (c,b) in pairs:
-            if b:
-                self.A[self.num[c]] = self.A0[self.num[c]]
-            else:
-                self.A[self.num[c]] = np.zeros_like(self.A[self.num[c]])
+    def closed_borders(self, countries):
+        self.A = self.A0.copy()
+
+        for c in countries:
+            self.A[self.num[c],:] = np.zeros_like(self.A[self.num[c],:])
+            self.A[:,self.num[c]] = np.zeros_like(self.A[:,self.num[c]])
+        
+        self.Asum = np.sum(self.A,axis = 1)
         
     def plot(self, value = 1, as_percent = False):
-        plt.figure(figsize=(16,10))
+        plt.figure(figsize = (10,7))
         for country in range(len(self.N)):
             s = np.array(self.SIR)[:,value,country]
             if as_percent:
@@ -72,33 +76,12 @@ class scenario:
         return vis
             
 
-def europe():
+def europe(SIR0 = None):
     Labels = ['BE','BG','CZ','DK','DE','EE','IE','EL','ES','FR','HR','IT',
       'CY','LV','LT','LU','HU','MT','NL','AT','PL','PT','RO','SI','SK','FI','SE','UK','NO','CH']
     N = [11590,6948,10709,5792,83784,1327,4938,10427,46755,65274,4105,60462,1170,1886,2722,
                          626,9660,442,17135,9006,37847,10197,19238,2078,5460,5541,10099,67886,5421,8655]
     num = dict(zip(Labels, range(len(Labels))))
-    
-    A = pd.read_csv("thematrix.csv" , header = None).values/(365*1000)
-    SIR0 = np.array([N]+[[0]*len(N)]*2)
-    inf = 100
-    SIR0[:,num['IT']] = [N[num['IT']]-inf,inf,0]
-
-    cs = scenario(A,N,[SIR0],labels = Labels)
-    cs.march(10)
-    cs.borders([('DE',False)])
-    cs.march(70)
-    cs.plot(1, as_percent = True)
-    
-    return cs
-    
-def inter(day, borders = None, SIR0 = None, max_days = 730):
-    Labels = ['BE','BG','CZ','DK','DE','EE','IE','EL','ES','FR','HR','IT',
-              'CY','LV','LT','LU','HU','MT','NL','AT','PL','PT','RO','SI','SK','FI','SE','UK','NO','CH']
-    N = [11590,6948,10709,5792,83784,1327,4938,10427,46755,65274,4105,60462,1170,1886,2722,
-         626,9660,442,17135,9006,37847,10197,19238,2078,5460,5541,10099,67886,5421,8655]
-    num = dict(zip(Labels, range(len(Labels))))
-    
     A = pd.read_csv("thematrix.csv" , header = None).values/(365*1000)
 
     if SIR0 == None:
@@ -107,13 +90,27 @@ def inter(day, borders = None, SIR0 = None, max_days = 730):
         SIR0[:,num['IT']] = [N[num['IT']]-inf,inf,0]
         SIR = [SIR0]
 
-    cs = scenario(A,N,SIR,labels = Labels)
+    cs = scenario(A,N,SIR0,labels = Labels)
+    return cs
+    
+def inter(day, day_old = 1, borders_old = None, borders = None, SIR0 = None, max_days = 730):
+    cs = europe(SIR0)
+
+    if day > day_old:
+        if borders_old != None:
+            cs.closed_borders(borders_old)
+
+        cs.march(day-day_old)
 
     if borders != None:
-        cs.borders([(x,False) for x in borders])
-
+        cs.closed_borders(borders)
     cs.march(max_days - day)
-    
-    fur_martin = {"send_back": cs.SIR.tolist(), "frames": cs.for_vis()}
-    
+
+    fur_martin = {"send_back": cs.SIR[day-day_old].tolist(), "frames": cs.for_vis()}
     return json.dumps(fur_martin)
+
+def demo():
+    cs = europe()
+    cs.update_R([('DE',1.1), ('PL',1.1), ('IT', 1.1)])
+    cs.march(100)
+    cs.plot(as_percent = True)
