@@ -48,8 +48,10 @@ class scenario:
         for (c,b) in pairs:
             if b:
                 self.A[self.num[c]] = self.A0[self.num[c]]
+                self.Asum = np.sum(A,axis = 1)
             else:
                 self.A[self.num[c]] = np.zeros_like(self.A[self.num[c]])
+                self.Asum = np.sum(A,axis = 1)
         
     def plot(self, value = 1, as_percent = False):
         plt.figure(figsize=(16,10))
