@@ -98,7 +98,7 @@ def inter(day, borders = None, SIR0 = None, max_days = 730):
     cs = scenario(A,N,SIR0,labels = Labels)
 
     if borders != None:
-        cs.borders(borders)
+        cs.borders([(x,False) for x in borders])
 
     cs.march(max_days - day)
     return json.dumps(cs.SIR.tolist())
