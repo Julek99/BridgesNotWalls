@@ -40,17 +40,6 @@ class scenario:
         
         self.SIR = np.array(self.SIR.tolist() + SIR.tolist()[1:])
         
-    def plot(self, value, as_percent = False):
-        plt.figure(figsize=(16,10))
-        for country in range(len(self.N)):
-            s = np.array(self.SIR)[:,value,country]
-            if as_percent:
-                s = s*self.Ninv[country]
-            plt.plot(range(len(s)),s)
-        if self.labels != None:
-            plt.legend(self.labels)
-        plt.show()
-    
     def update_R(self, pairs):
         for (i,r) in pairs:
             self.beta[self.num[i]] = r*self.gamma[self.num[i]]
@@ -61,6 +50,26 @@ class scenario:
                 self.A[self.num[c]] = self.A0[self.num[c]]
             else:
                 self.A[self.num[c]] = np.zeros_like(self.A[self.num[c]])
+        
+    def plot(self, value = 1, as_percent = False):
+        plt.figure(figsize=(16,10))
+        for country in range(len(self.N)):
+            s = np.array(self.SIR)[:,value,country]
+            if as_percent:
+                s = s*self.Ninv[country]
+            plt.plot(range(len(s)),s)
+        if self.labels != None:
+            plt.legend(self.labels)
+        plt.show()
+                
+    def for_vis(self, value = 1, as_json = True):
+        vis = dict()
+        
+        for i in range(self.SIR.shape[0]):
+            dt = dict(zip(self.labels,(self.SIR[i,1,:]*self.Ninv*100).astype(int).tolist()))
+            vis[i] = dt
+            
+        return vis
             
 
 def europe():
@@ -80,6 +89,8 @@ def europe():
     cs.borders([('DE',False)])
     cs.march(70)
     cs.plot(1, as_percent = True)
+    
+    return cs
     
 def inter(day, borders = None, SIR0 = None, max_days = 730):
     Labels = ['BE','BG','CZ','DK','DE','EE','IE','EL','ES','FR','HR','IT',
@@ -101,4 +112,7 @@ def inter(day, borders = None, SIR0 = None, max_days = 730):
         cs.borders([(x,False) for x in borders])
 
     cs.march(max_days - day)
-    return json.dumps(cs.SIR.tolist())
+    
+    fur_martin = {"send_back": cs.SIR[-1].tolist(), "frames": cs.for_vis()}
+    
+    return json.dumps(fur_martin)
