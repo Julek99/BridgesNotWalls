@@ -48,10 +48,10 @@ class scenario:
         for (c,b) in pairs:
             if b:
                 self.A[self.num[c]] = self.A0[self.num[c]]
-                self.Asum = np.sum(A,axis = 1)
+                self.Asum = np.sum(self.A,axis = 1)
             else:
                 self.A[self.num[c]] = np.zeros_like(self.A[self.num[c]])
-                self.Asum = np.sum(A,axis = 1)
+                self.Asum = np.sum(self.A,axis = 1)
         
     def plot(self, value = 1, as_percent = False):
         plt.figure(figsize=(16,10))
@@ -94,7 +94,7 @@ def europe():
     
     return cs
     
-def inter(day, day_old = 0, borders = None, SIR0 = None, max_days = 730):
+def inter(day, day_old = 0, borders_old = None, borders = None, SIR0 = None, max_days = 730):
     Labels = ['BE','BG','CZ','DK','DE','EE','IE','EL','ES','FR','HR','IT',
               'CY','LV','LT','LU','HU','MT','NL','AT','PL','PT','RO','SI','SK','FI','SE','UK','NO','CH']
     N = [11590,6948,10709,5792,83784,1327,4938,10427,46755,65274,4105,60462,1170,1886,2722,
@@ -108,8 +108,12 @@ def inter(day, day_old = 0, borders = None, SIR0 = None, max_days = 730):
         inf = 100
         SIR0[:,num['IT']] = [N[num['IT']]-inf,inf,0]
 
+
     cs = scenario(A,N,SIR0,labels = Labels)
     if day > day_old:
+        if borders_old != None:
+            cs.borders([(x,False) for x in borders_old])
+            
         cs.march(day-day_old)
 
     if borders != None:
