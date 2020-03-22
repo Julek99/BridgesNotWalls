@@ -92,7 +92,7 @@ def europe():
     
     return cs
     
-def inter(day, borders = None, SIR0 = None, max_days = 730):
+def inter(day, day_old = 0, borders = None, SIR0 = None, max_days = 730):
     Labels = ['BE','BG','CZ','DK','DE','EE','IE','EL','ES','FR','HR','IT',
               'CY','LV','LT','LU','HU','MT','NL','AT','PL','PT','RO','SI','SK','FI','SE','UK','NO','CH']
     N = [11590,6948,10709,5792,83784,1327,4938,10427,46755,65274,4105,60462,1170,1886,2722,
@@ -107,12 +107,14 @@ def inter(day, borders = None, SIR0 = None, max_days = 730):
         SIR0[:,num['IT']] = [N[num['IT']]-inf,inf,0]
 
     cs = scenario(A,N,SIR0,labels = Labels)
+    if day > day_old:
+        cs.march(day-day_old)
 
     if borders != None:
         cs.borders([(x,False) for x in borders])
 
     cs.march(max_days - day)
     
-    fur_martin = {"send_back": cs.SIR[-1].tolist(), "frames": cs.for_vis()}
+    fur_martin = {"send_back": cs.SIR[day-day_old].tolist(), "frames": cs.for_vis()}
     
     return json.dumps(fur_martin)
