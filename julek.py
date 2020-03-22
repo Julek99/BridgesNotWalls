@@ -5,7 +5,7 @@ import json
 
 class scenario:
     
-    def __init__(self, A, N, SIR0, R0 = 2.2,T = 5.1, labels = None):
+    def __init__(self, A, N, SIR, R0 = 2.2,T = 5.1, labels = None):
         self.A = np.array(A).astype("double")
         self.A0 = A
         self.Asum = np.sum(A,axis = 1)
@@ -18,7 +18,7 @@ class scenario:
         self.labels = labels
         if labels != None:
             self.num = dict(zip(labels, range(len(labels))))
-        self.SIR = np.array([SIR0])
+        self.SIR = np.array(SIR)
         
     def dSIR(self, SIR_snap):
         S,I,R = SIR_snap[0],SIR_snap[1],SIR_snap[2]
@@ -84,7 +84,7 @@ def europe():
     inf = 100
     SIR0[:,num['IT']] = [N[num['IT']]-inf,inf,0]
 
-    cs = scenario(A,N,SIR0,labels = Labels)
+    cs = scenario(A,N,[SIR0],labels = Labels)
     cs.march(10)
     cs.borders([('DE',False)])
     cs.march(70)
@@ -105,14 +105,15 @@ def inter(day, borders = None, SIR0 = None, max_days = 730):
         SIR0 = np.array([N]+[[0]*len(N)]*2)
         inf = 100
         SIR0[:,num['IT']] = [N[num['IT']]-inf,inf,0]
+        SIR = [SIR0]
 
-    cs = scenario(A,N,SIR0,labels = Labels)
+    cs = scenario(A,N,SIR,labels = Labels)
 
     if borders != None:
         cs.borders([(x,False) for x in borders])
 
     cs.march(max_days - day)
     
-    fur_martin = {"send_back": cs.SIR[-1].tolist(), "frames": cs.for_vis()}
+    fur_martin = {"send_back": cs.SIR.tolist(), "frames": cs.for_vis()}
     
     return json.dumps(fur_martin)
