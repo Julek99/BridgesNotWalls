@@ -90,8 +90,8 @@ class scenario:
             mp[i] = dict()
             for j in range(self.SIR.shape[2]):
                 mp[i][self.labels[j]] = {"infected_percentage": int(self.SIR[i,1,j]*100),\
-                     "infected_total": self.SIR[i,1,j]*1000, \
-                         "recovered_total": self.SIR[i,2,j]*1000}
+                     "infected_total": int(self.SIR[i,1,j]*1000), \
+                         "recovered_total": int(self.SIR[i,2,j]*1000)}
 
         for i in range(self.SIR.shape[2]):
             pl[self.labels[i]] = (self.SIR[:,1,i]*self.Ninv[i]).tolist()
