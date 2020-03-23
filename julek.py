@@ -26,7 +26,8 @@ class scenario:
         S,I,R = SIR_snap[0],SIR_snap[1],SIR_snap[2]
         
         def quant(X):
-            return np.dot(self.A,X*self.Ninv) - self.Asum*X*self.Ninv
+            W = X*self.Ninv
+            return self.A.dot(W) - self.Asum*W
         
         dS = -self.beta*I*S*self.Ninv + quant(S)
         dI = self.beta*I*S*self.Ninv - self.gamma*I + quant(I)
@@ -47,7 +48,7 @@ class scenario:
         for (i,r) in pairs:
             self.beta[self.num[i]] = r*self.gamma[self.num[i]]
             
-    def closed_borders(self, countries):
+    def closed_borders(self, countries = []):
         self.A = self.A0.copy()
 
         for c in countries:
@@ -68,13 +69,16 @@ class scenario:
         plt.show()
                 
     def for_vis(self, value = 1, as_json = True):
-        vis = dict()
+        mp = dict()
         
         for i in range(self.SIR.shape[0]):
             dt = dict(zip(self.labels,(self.SIR[i,1,:]*self.Ninv*100).astype(int).tolist()))
-            vis[i] = dt
-            
-        return vis
+            mp[i] = dt
+
+        pl = self.SIR[:,1,:] * self.Ninv
+        fur_martin = {"map": mp, "plot": pl}
+        if as_json: fur_martin = json.dumps(fur_martin)
+        return fur_martin
             
 
 def europe(SIR0 = None):
@@ -83,7 +87,7 @@ def europe(SIR0 = None):
     N = [11590,6948,10709,5792,83784,1327,4938,10427,46755,65274,4105,60462,1170,1886,2722,
                          626,9660,442,17135,9006,37847,10197,19238,2078,5460,5541,10099,67886,5421,8655]
     num = dict(zip(Labels, range(len(Labels))))
-    A = pd.read_csv("backend/thematrix.csv" , header = None).values/(365*1000000)
+    A = pd.read_csv("backend/thematrix.csv" , header = None).values/(1000)
 
     if SIR0 == None:
         SIR0 = np.array([N]+[[0]*len(N)]*2)
@@ -94,22 +98,23 @@ def europe(SIR0 = None):
     cs = scenario(A,N,SIR0,labels = Labels)
     return cs
     
-def inter(events = {}, SIR0 = None, max_days = 730, as_json = True):
+def inter(events = {}, SIR0 = None, max_days = 730, as_json = True, R_max = 2.2):
     cs = europe(SIR0)
     time = [int(i) for i in events.keys()] + [max_days-1]
     cs.march(time[0])
 
     for i in range(len(time)-1):
-        cs.closed_borders(events[time[i]]["closed_borders"])
+        cs.closed_borders(events[str(time[i])]["closed_borders"])
+        rd = events[str(time[i])]["R"]
+        cs.update_R([(i,(int(rd[i])*(R_max/100))+1) for i in rd.keys()])
         cs.march(time[i+1]-time[i])
 
-
-    fur_martin = cs.for_vis()
-    if as_json: fur_martin = json.dumps(fur_martin)
-    return fur_martin
+    return cs.for_vis()
 
 def demo():
     cs = europe()
-    cs.update_R([('DE',1.1), ('PL',1.1), ('IT', 1.1)])
+    cs.closed_borders(["DE"])
+    cs.march(30)
+    cs.closed_borders()
     cs.march(100)
     cs.plot(as_percent = True)
