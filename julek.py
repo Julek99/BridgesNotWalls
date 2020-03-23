@@ -41,7 +41,7 @@ class scenario:
             for i in range(1,nt+1):
                 SIR[i] = SIR[i-1]+self.dSIR(SIR[i-1])
             
-        self.SIR = np.append(self.SIR,SIR[1:], axis = 0)
+            self.SIR = np.append(self.SIR,SIR[1:], axis = 0)
         
     def update_R(self, pairs):
         for (i,r) in pairs:
@@ -83,7 +83,7 @@ def europe(SIR0 = None):
     N = [11590,6948,10709,5792,83784,1327,4938,10427,46755,65274,4105,60462,1170,1886,2722,
                          626,9660,442,17135,9006,37847,10197,19238,2078,5460,5541,10099,67886,5421,8655]
     num = dict(zip(Labels, range(len(Labels))))
-    A = pd.read_csv("backend/thematrix.csv" , header = None).values/(365*1000)
+    A = pd.read_csv("backend/thematrix.csv" , header = None).values/(365*1000000)
 
     if SIR0 == None:
         SIR0 = np.array([N]+[[0]*len(N)]*2)
@@ -96,7 +96,7 @@ def europe(SIR0 = None):
     
 def inter(events = {}, SIR0 = None, max_days = 730, as_json = True):
     cs = europe(SIR0)
-    time = list(events.keys()) + [max_days-1]
+    time = [int(i) for i in events.keys()] + [max_days-1]
     cs.march(time[0])
 
     for i in range(len(time)-1):
