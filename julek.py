@@ -7,7 +7,7 @@ import json
 
 class scenario:
     
-    def __init__(self, A, N, SIR, R0 = 2.2,T = 5.1, labels = None):
+    def __init__(self, A, N, SIR0, R0 = 2.2,T = 5.1, labels = None):
         self.A = np.array(A).astype("double")
         self.A0 = A
         self.Asum = np.sum(A,axis = 1)
@@ -20,7 +20,7 @@ class scenario:
         self.labels = labels
         if labels != None:
             self.num = dict(zip(labels, range(len(labels))))
-        self.SIR = np.array(SIR)
+        self.SIR = np.array([SIR0])
         
     def dSIR(self, SIR_snap):
         S,I,R = SIR_snap[0],SIR_snap[1],SIR_snap[2]
@@ -34,13 +34,14 @@ class scenario:
         return np.array([dS,dI,dR])
         
     def march(self, nt):
-        SIR = np.zeros((nt,3,self.A.shape[0]))
-        SIR[0] = self.SIR[-1]
-        
-        for i in range(1,nt):
-            SIR[i] = SIR[i-1]+self.dSIR(SIR[i-1])
-        
-        self.SIR = np.array(self.SIR.tolist() + SIR.tolist()[1:])
+        if nt > 0:
+            SIR = np.zeros((nt+1,3,self.A.shape[0]))
+            SIR[0] = self.SIR[-1]
+            
+            for i in range(1,nt+1):
+                SIR[i] = SIR[i-1]+self.dSIR(SIR[i-1])
+            
+        self.SIR = np.append(self.SIR,SIR[1:], axis = 0)
         
     def update_R(self, pairs):
         for (i,r) in pairs:
@@ -82,7 +83,7 @@ def europe(SIR0 = None):
     N = [11590,6948,10709,5792,83784,1327,4938,10427,46755,65274,4105,60462,1170,1886,2722,
                          626,9660,442,17135,9006,37847,10197,19238,2078,5460,5541,10099,67886,5421,8655]
     num = dict(zip(Labels, range(len(Labels))))
-    A = pd.read_csv("thematrix.csv" , header = None).values/(365*1000)
+    A = pd.read_csv("backend/thematrix.csv" , header = None).values/(365*1000)
 
     if SIR0 == None:
         SIR0 = np.array([N]+[[0]*len(N)]*2)
@@ -93,21 +94,19 @@ def europe(SIR0 = None):
     cs = scenario(A,N,SIR0,labels = Labels)
     return cs
     
-def inter(day, day_old = 1, borders_old = None, borders = None, SIR0 = None, max_days = 730):
+def inter(events = {}, SIR0 = None, max_days = 730, as_json = True):
     cs = europe(SIR0)
+    time = list(events.keys()) + [max_days-1]
+    cs.march(time[0])
 
-    if day > day_old:
-        if borders_old != None:
-            cs.closed_borders(borders_old)
+    for i in range(len(time)-1):
+        cs.closed_borders(events[time[i]]["closed_borders"])
+        cs.march(time[i+1]-time[i])
 
-        cs.march(day-day_old)
 
-    if borders != None:
-        cs.closed_borders(borders)
-    cs.march(max_days - day)
-
-    fur_martin = {"send_back": cs.SIR[day-day_old].tolist(), "frames": cs.for_vis()}
-    return json.dumps(fur_martin)
+    fur_martin = cs.for_vis()
+    if as_json: fur_martin = json.dumps(fur_martin)
+    return fur_martin
 
 def demo():
     cs = europe()
