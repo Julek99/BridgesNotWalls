@@ -87,14 +87,12 @@ class scenario:
         mp, pl = dict(),dict()
         
         for i in range(self.SIR.shape[0]):
-            mp[i] = dict()
+            mp[i],pl[i] = dict(), dict()
             for j in range(self.SIR.shape[2]):
                 mp[i][self.labels[j]] = {"infected_percentage": \
                     int(self.SIR[i,1,j]*100*self.Ninv[j]), "infected_total": \
                         int(self.SIR[i,1,j]*1000), "recovered_total": int(self.SIR[i,2,j]*1000)}
-
-        for i in range(self.SIR.shape[2]):
-            pl[self.labels[i]] = (self.SIR[:,1,i]*self.Ninv[i]).tolist()
+                pl[i][self.labels[j]] = self.SIR[i,1,j]*self.Ninv[j]
 
         fur_martin = {"plot": pl, "map": mp}
         if as_json: fur_martin = json.dumps(fur_martin)
