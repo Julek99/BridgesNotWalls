@@ -56,6 +56,21 @@ class scenario:
             self.A[:,self.num[c]] = np.zeros_like(self.A[:,self.num[c]])
         
         self.Asum = np.sum(self.A,axis = 1)
+    
+    def full_run(self, events = {}, max_days = 730, R_range = (1.1,2.2)):
+        time = [int(i) for i in events.keys()] + [max_days-1]
+        self.march(time[0])
+
+        for i in range(len(time)-1):
+            event = events[str(time[i])]
+
+            if "closed_borders" in event.keys():
+                self.closed_borders(event["closed_borders"])
+            if "R" in event.keys():
+                rd = events[str(time[i])]["R"]
+                self.update_R([(i,(int(rd[i])*((R_range[1]-R_range[0])/100))+1.1) for i in rd.keys()])
+
+            self.march(time[i+1]-time[i])
         
     def plot(self, value = 1, as_percent = False):
         plt.figure(figsize = (10,7))
@@ -75,7 +90,7 @@ class scenario:
             dt = dict(zip(self.labels,(self.SIR[i,1,:]*self.Ninv*100).astype(int).tolist()))
             mp[i] = dt
 
-        pl = self.SIR[:,1,:] * self.Ninv
+        pl = (self.SIR[:,1,:] * self.Ninv).tolist()
         fur_martin = {"map": mp, "plot": pl}
         if as_json: fur_martin = json.dumps(fur_martin)
         return fur_martin
@@ -98,18 +113,10 @@ def europe(SIR0 = None):
     cs = scenario(A,N,SIR0,labels = Labels)
     return cs
     
-def inter(events = {}, SIR0 = None, max_days = 730, as_json = True, R_max = 2.2):
+def inter(events = {}, SIR0 = None, as_json = True, max_days = 730):
     cs = europe(SIR0)
-    time = [int(i) for i in events.keys()] + [max_days-1]
-    cs.march(time[0])
-
-    for i in range(len(time)-1):
-        cs.closed_borders(events[str(time[i])]["closed_borders"])
-        rd = events[str(time[i])]["R"]
-        cs.update_R([(i,(int(rd[i])*(R_max/100))+1) for i in rd.keys()])
-        cs.march(time[i+1]-time[i])
-
-    return cs.for_vis()
+    cs.full_run(events, max_days = max_days)
+    return cs.for_vis(as_json)
 
 def demo():
     cs = europe()
