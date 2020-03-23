@@ -84,14 +84,19 @@ class scenario:
         plt.show()
                 
     def for_vis(self, value = 1, as_json = True):
-        mp = dict()
+        ip, it, rt, pl = dict(),dict(),dict(),dict()
         
         for i in range(self.SIR.shape[0]):
-            dt = dict(zip(self.labels,(self.SIR[i,1,:]*self.Ninv*100).astype(int).tolist()))
-            mp[i] = dt
+            ipl = dict(zip(self.labels,(self.SIR[i,1,:]*self.Ninv*100).astype(int).tolist()))
+            itl = dict(zip(self.labels,(self.SIR[i,1,:]*1000).tolist()))
+            rtl = dict(zip(self.labels,(self.SIR[i,2,:]*1000).tolist()))
+            ip[i], it[i], rt[i] = ipl,itl,rtl
 
-        pl = (self.SIR[:,1,:] * self.Ninv).tolist()
-        fur_martin = {"map": mp, "plot": pl}
+        for i in range(self.SIR.shape[1]):
+            pl[self.labels[i]] = (self.SIR[:,1,i]*self.Ninv[i]).tolist()
+
+        fur_martin = {"for_plot": pl, "infected_percentage": ip, "infected_total": rt, \
+            "recovered_total": rt}
         if as_json: fur_martin = json.dumps(fur_martin)
         return fur_martin
             
