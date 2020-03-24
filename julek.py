@@ -8,7 +8,7 @@ import json
 class scenario:
 
     # Initialise a simulation
-    def __init__(self, A, N, SIR0, labels, R0 = 2.2,T = 5.1):
+    def __init__(self, A, N, SIR0, labels, R0 = 2.4,T = 5.1):
         # A is adjacency matrix, N array with population of each state
         # SIR0 the initial state of S,I and R, labels a list of state names
         self.A = np.array(A).astype("double")
@@ -65,7 +65,7 @@ class scenario:
         self.Asum = np.sum(self.A,axis = 1)
     
     # Run time march for 730 days, updating borders and/or R at appropriate events
-    def full_run(self, events = {}, max_days = 730, R_range = (1.1,2.2)):
+    def full_run(self, events = {}, max_days = 730, R_range = (1,2.4)):
         # Expects events to be a dict, where events[t] = {"R": pairs for update_R() at t,
         # "closed_borders": countries for closed_borders() at t}
         time = [int(i) for i in events.keys()] + [max_days-1]
