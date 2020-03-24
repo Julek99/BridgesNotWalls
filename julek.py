@@ -81,15 +81,25 @@ class scenario:
             self.march(time[i+1]-time[i])
         
     # Create graph for current simulation
-    def plot(self, value = 1, as_percent = False):
-        plt.figure(figsize = (10,7))
-        for country in range(len(self.N)):
-            s = np.array(self.SIR)[:,value,country]
+    def plot(self, value = 1, as_percent = False, which = None):
+        plt.figure(figsize = (14,7))
+        if which == None:
+            bunch = self.labels
+        else:
+            bunch = which
+
+        for country in bunch:
+            s = np.array(self.SIR)[:,value,self.num[country]]
             if as_percent:
-                s = s*self.Ninv[country]
+                s = s*self.Ninv[self.num[country]]
             plt.plot(range(len(s)),s)
-        if self.labels != None:
-            plt.legend(self.labels)
+
+        plt.legend(bunch, ncol = 2)
+        plt.xlabel("Time in Days")
+        if as_percent:
+            plt.ylabel("Infected per Capita")
+        else:
+            plt.ylabel("Infected Total")
         plt.show()
 
     # For website visualisation       
@@ -110,8 +120,8 @@ class scenario:
             
 # Load europe scenario
 def europe(SIR0 = None):
-    Labels = ['BE','BG','CZ','DK','DE','EE','IE','EL','ES','FR','HR','IT',
-      'CY','LV','LT','LU','HU','MT','NL','AT','PL','PT','RO','SI','SK','FI','SE','UK','NO','CH']
+    Labels = ['BE','BG','CZ','DK','DE','EE','IE','EL','ES','FR','HR','IT','CY','LV','LT', \
+    'LU','HU','MT','NL','AT','PL','PT','RO','SI','SK','FI','SE','UK','NO','CH']
     N = [11590,6948,10709,5792,83784,1327,4938,10427,46755,65274,4105,60462,1170,1886,2722,
                          626,9660,442,17135,9006,37847,10197,19238,2078,5460,5541,10099,67886,5421,8655]
     num = dict(zip(Labels, range(len(Labels))))
