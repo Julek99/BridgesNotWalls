@@ -105,7 +105,7 @@ class scenario:
                     int(self.SIR[i,1,j]*100*self.Ninv[j]), "infected_total": \
                         int(self.SIR[i,1,j]*1000), "recovered_total": int(self.SIR[i,2,j]*1000)}
         
-        pl = (self.SIR[:,1,:]*self.Ninv).tolist()
+        pl = np.round(self.SIR[:,1,:]*self.Ninv*100,2).tolist()
         fur_martin = {"plot": pl, "map": mp}
         if as_json: fur_martin = json.dumps(fur_martin)
         return fur_martin
