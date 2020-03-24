@@ -118,10 +118,12 @@ def europe(SIR0 = None):
     A = pd.read_csv("backend/thematrix.csv" , header = None).values/(1000)
 
     df = pd.read_csv("backend/SIR0.csv")
-    df = df.loc[df["Month"] == 3].loc[df["Day"] == 12]
     SIR0 = np.array([N]+[[0]*len(N)]*2).astype(float)
     for i in Labels:
-        SIR0[1,num[i]] = df.loc[df["Label"] == i,"Cases"].iloc()[0]/1000
+        dft = df.loc[df["Label"] == i]
+        for j in range(dft.shape[0]):
+            if (dft.iloc[j]["Month"] < 3 or dft.iloc[j]["Day"] <= 12):
+                SIR0[1,num[i]] += dft.iloc[j]["Cases"]/1000
         SIR0[0,num[i]] -= SIR0[1,num[i]]
 
     cs = scenario(A,N,SIR0,Labels)
