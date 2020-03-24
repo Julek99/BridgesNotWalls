@@ -6,8 +6,11 @@ import matplotlib.pyplot as plt
 import json
 
 class scenario:
-    
-    def __init__(self, A, N, SIR0, R0 = 2.2,T = 5.1, labels = None):
+
+    # Initialise a simulation
+    def __init__(self, A, N, SIR0, labels, R0 = 2.2,T = 5.1):
+        # A is adjacency matrix, N array with population of each state
+        # SIR0 the initial state of S,I and R, labels a list of state names
         self.A = np.array(A).astype("double")
         self.A0 = A
         self.Asum = np.sum(A,axis = 1)
@@ -18,10 +21,10 @@ class scenario:
         self.beta = np.array([R0/T]*len(N))
         self.gamma = np.array([1/T]*len(N))
         self.labels = labels
-        if labels != None:
-            self.num = dict(zip(labels, range(len(labels))))
+        self.num = dict(zip(labels, range(len(labels))))
         self.SIR = np.array([SIR0])
-        
+
+    # Calculate the derivative of SIR at point t given SIR(t)
     def dSIR(self, SIR_snap):
         S,I,R = SIR_snap[0],SIR_snap[1],SIR_snap[2]
         
@@ -33,7 +36,8 @@ class scenario:
         dI = self.beta*I*S*self.Ninv - self.gamma*I + quant(I)
         dR = self.gamma*I + quant(R)
         return np.array([dS,dI,dR])
-        
+
+    # Perform time-march for nt days 
     def march(self, nt):
         if nt > 0:
             SIR = np.zeros((nt+1,3,self.A.shape[0]))
@@ -43,12 +47,15 @@ class scenario:
                 SIR[i] = SIR[i-1]+self.dSIR(SIR[i-1])
             
             self.SIR = np.append(self.SIR,SIR[1:], axis = 0)
-        
+
+    # Update the value of R for pairs = [(label, R_value), ...]    
     def update_R(self, pairs):
         for (i,r) in pairs:
             self.beta[self.num[i]] = r*self.gamma[self.num[i]]
-            
+
+    # Update the border situation   
     def closed_borders(self, countries = []):
+        # Sets all borders open except those that are passed in array countries
         self.A = self.A0.copy()
 
         for c in countries:
@@ -57,7 +64,10 @@ class scenario:
         
         self.Asum = np.sum(self.A,axis = 1)
     
+    # Run time march for 730 days, updating borders and/or R at appropriate events
     def full_run(self, events = {}, max_days = 730, R_range = (1.1,2.2)):
+        # Expects events to be a dict, where events[t] = {"R": pairs for update_R() at t,
+        # "closed_borders": countries for closed_borders() at t}
         time = [int(i) for i in events.keys()] + [max_days-1]
         self.march(time[0])
 
@@ -72,6 +82,7 @@ class scenario:
 
             self.march(time[i+1]-time[i])
         
+    # Create graph for current simulation
     def plot(self, value = 1, as_percent = False):
         plt.figure(figsize = (10,7))
         for country in range(len(self.N)):
@@ -82,7 +93,8 @@ class scenario:
         if self.labels != None:
             plt.legend(self.labels)
         plt.show()
-                
+
+    # For website interface       
     def for_vis(self, value = 1, as_json = True):
         mp = dict()
         
@@ -98,7 +110,7 @@ class scenario:
         if as_json: fur_martin = json.dumps(fur_martin)
         return fur_martin
             
-
+# Load europe scenario
 def europe(SIR0 = None):
     Labels = ['BE','BG','CZ','DK','DE','EE','IE','EL','ES','FR','HR','IT',
       'CY','LV','LT','LU','HU','MT','NL','AT','PL','PT','RO','SI','SK','FI','SE','UK','NO','CH']
@@ -115,12 +127,14 @@ def europe(SIR0 = None):
 
     cs = scenario(A,N,SIR0,labels = Labels)
     return cs
-    
+
+# Interface with website
 def inter(events = {}, SIR0 = None, as_json = True, max_days = 730):
     cs = europe(SIR0)
     cs.full_run(events, max_days = max_days)
     return cs.for_vis(as_json)
 
+# Demonstration
 def demo():
     cs = europe()
     cs.closed_borders(["DE"])
