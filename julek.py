@@ -1,5 +1,3 @@
-# Author: Julian Wykowski jw6717@ic.ac.uk
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
