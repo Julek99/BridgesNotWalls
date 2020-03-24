@@ -119,7 +119,7 @@ class scenario:
         return fur_martin
             
 # Load europe scenario
-def europe(SIR0 = None):
+def europe(month = 3, day = 1):
     Labels = ['BE','BG','CZ','DK','DE','EE','IE','EL','ES','FR','HR','IT','CY','LV','LT', \
     'LU','HU','MT','NL','AT','PL','PT','RO','SI','SK','FI','SE','UK','NO','CH']
     N = [11590,6948,10709,5792,83784,1327,4938,10427,46755,65274,4105,60462,1170,1886,2722,
@@ -132,7 +132,8 @@ def europe(SIR0 = None):
     for i in Labels:
         dft = df.loc[df["Label"] == i]
         for j in range(dft.shape[0]):
-            if (dft.iloc[j]["Month"] < 3 or dft.iloc[j]["Day"] <= 12):
+            if dft.iloc[j]["Month"] < month or (dft.iloc[j]["Month"] == month \
+            and dft.iloc[j]["Day"] <= day):
                 SIR0[1,num[i]] += dft.iloc[j]["Cases"]/1000
         SIR0[0,num[i]] -= SIR0[1,num[i]]
 
