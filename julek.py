@@ -78,7 +78,7 @@ class scenario:
                 self.closed_borders(event["closed_borders"])
             if "R" in event.keys():
                 rd = events[str(time[i])]["R"]
-                self.update_R([(i,(int(rd[i])*((R_range[1]-R_range[0])/100))+1.1) for i in rd.keys()])
+                self.update_R([(i,(int(rd[i])*((R_range[1]-R_range[0])/100))+R_range[0]) for i in rd.keys()])
 
             self.march(time[i+1]-time[i])
         
