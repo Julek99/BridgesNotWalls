@@ -94,7 +94,7 @@ class scenario:
             plt.legend(self.labels)
         plt.show()
 
-    # For website interface       
+    # For website visualisation       
     def for_vis(self, value = 1, as_json = True):
         mp = dict()
         
@@ -119,13 +119,14 @@ def europe(SIR0 = None):
     num = dict(zip(Labels, range(len(Labels))))
     A = pd.read_csv("backend/thematrix.csv" , header = None).values/(1000)
 
-    if SIR0 == None:
-        SIR0 = np.array([N]+[[0]*len(N)]*2)
-        inf = 100
-        SIR0[:,num['IT']] = [N[num['IT']]-inf,inf,0]
-        SIR = [SIR0]
+    df = pd.read_csv("backend/SIR0.csv")
+    df = df.loc[df["Month"] == 3].loc[df["Day"] == 12]
+    SIR0 = np.array([N]+[[0]*len(N)]*2)
+    for i in Labels:
+        SIR0[1,num[i]] = df.loc[df["Label"] == i,"Cases"].iloc()[0]/1000
+        SIR0[0,num[i]] -= SIR0[1,num[i]]
 
-    cs = scenario(A,N,SIR0,labels = Labels)
+    cs = scenario(A,N,SIR0,Labels)
     return cs
 
 # Interface with website
