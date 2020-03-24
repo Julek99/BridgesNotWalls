@@ -119,7 +119,7 @@ def europe(SIR0 = None):
     num = dict(zip(Labels, range(len(Labels))))
     A = pd.read_csv("backend/thematrix.csv" , header = None).values/(1000)
 
-    df = pd.read_csv("backend/SIR0.csv")
+    df = pd.read_csv("backend/SIR0.csv").astype(float)
     df = df.loc[df["Month"] == 3].loc[df["Day"] == 12]
     SIR0 = np.array([N]+[[0]*len(N)]*2)
     for i in Labels:
