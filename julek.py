@@ -142,7 +142,7 @@ def europe(month = 3, day = 1):
 
 # Interface with website
 def inter(events = {}, SIR0 = None, as_json = True, max_days = 730):
-    cs = europe(SIR0)
+    cs = europe()
     cs.full_run(events, max_days = max_days)
     return cs.for_vis(as_json)
 
